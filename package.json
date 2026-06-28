@@ -1,0 +1,17 @@
+{
+  "name": "model-inventory-tracker",
+  "version": "1.0.0",
+  "description": "Model inventory and automatic risk-rating tracker for Model Risk Management (MRM)",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node src/db.js --reset"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

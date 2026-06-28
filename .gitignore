@@ -1,0 +1,7 @@
+node_modules/
+npm-debug.log*
+# Your live data file (created on first run from the seed data).
+# It is ignored so your real records are not committed to the repo.
+data/data.json
+data/*.tmp
+.DS_Store
