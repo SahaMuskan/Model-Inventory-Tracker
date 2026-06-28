@@ -697,6 +697,46 @@ async function openFindingForm(finding = null, presetModelId = null, refresh = n
 }
 
 // =========================================================================
+// SETTINGS / MANAGE DATA
+// =========================================================================
+async function viewSettings() {
+  setHeader('Settings', 'Manage your data and starting point.');
+  setActions([]);
+  const [models, findings] = await Promise.all([api.models(), api.findings()]);
+
+  appEl().innerHTML = `
+    <div class="card" style="max-width:780px">
+      <div class="card-head"><h3>Your data</h3></div>
+      <div class="card-pad">
+        <p class="muted">You currently have <strong>${models.length}</strong> model${models.length === 1 ? '' : 's'} and <strong>${findings.length}</strong> finding${findings.length === 1 ? '' : 's'} saved on this machine.</p>
+        <div class="banner banner-info" style="margin:12px 0">New here? The tool ships with sample models so it doesn't look empty. When you're ready to use it for real, <strong>clear the data</strong> and enter your own.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+          <button class="btn btn-danger" id="clear-all">Clear all data — start fresh</button>
+          <button class="btn" id="load-sample">Reload sample data</button>
+          <a class="btn" href="/api/models/export.csv">↓ Back up models (CSV)</a>
+          <a class="btn" href="/api/findings/export.csv">↓ Back up findings (CSV)</a>
+        </div>
+        <p class="muted" style="font-size:12px;margin-top:14px">Tip: export a CSV backup before clearing. After clearing, add models with <strong>+ Add model</strong> on the Model Register, or load many at once with <strong>Import CSV</strong>.</p>
+      </div>
+    </div>
+    <div class="card" style="max-width:780px;margin-top:18px">
+      <div class="card-head"><h3>Validation schedule</h3></div>
+      <div class="card-pad"><p class="muted">Re-validation intervals and the “due soon” window are set on the <a href="#/validation">Validation Schedule</a> page.</p></div>
+    </div>`;
+
+  document.getElementById('clear-all').onclick = async () => {
+    if (!(await confirmDialog('Permanently delete ALL models and findings to start with a blank inventory?\n\nThis cannot be undone. Consider exporting a CSV backup first.'))) return;
+    try { const r = await api.resetData('empty'); toast(`Cleared — now ${r.models} models, ${r.findings} findings`); go('/models'); }
+    catch (e) { toast(e.message, 'err'); }
+  };
+  document.getElementById('load-sample').onclick = async () => {
+    if (!(await confirmDialog('Replace everything with the built-in sample data?\n\nThis overwrites your current models and findings and cannot be undone.'))) return;
+    try { const r = await api.resetData('sample'); toast(`Loaded sample data — ${r.models} models`); go('/dashboard'); }
+    catch (e) { toast(e.message, 'err'); }
+  };
+}
+
+// =========================================================================
 // CSV IMPORT
 // =========================================================================
 function openImportModal(kind) {
@@ -746,6 +786,7 @@ const routes = [
   { re: /^\/validation$/, view: viewValidation },
   { re: /^\/findings$/, view: viewFindings },
   { re: /^\/methodology$/, view: viewMethodology },
+  { re: /^\/settings$/, view: viewSettings },
 ];
 
 function currentPath() { return location.hash.replace(/^#/, '') || '/dashboard'; }

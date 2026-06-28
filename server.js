@@ -13,6 +13,7 @@ import findingsRouter from './src/routes/findings.js';
 import settingsRouter from './src/routes/settings.js';
 import dashboardRouter from './src/routes/dashboard.js';
 import methodologyRouter from './src/routes/methodology.js';
+import adminRouter from './src/routes/admin.js';
 import { load } from './src/db.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -28,6 +29,7 @@ app.use('/api/findings', findingsRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/methodology', methodologyRouter);
+app.use('/api/admin', adminRouter);
 
 // Any other /api/* path is a genuine 404 (don't fall through to the SPA).
 app.use('/api', (req, res) => res.status(404).json({ error: 'API endpoint not found' }));

@@ -19,9 +19,10 @@ prepend it to PATH first:
 $env:Path = "C:\Users\muskan.saha\AppData\Local\node-portable\node-v24.18.0-win-x64;" + $env:Path
 ```
 
-- **Start (non-technical):** double-click `Start Model Tracker.bat` (auto-finds portable node, opens the browser).
+- **Start (non-technical):** double-click `Start Model Tracker.bat` — self-installing: it uses Node from PATH if present, else a portable copy, else downloads a portable Node via `tools/install-node.ps1` (first run only), runs `npm install` if needed, then opens the browser.
 - **Start (CLI):** `npm start` → open http://localhost:3000
-- **Reset to sample data:** `npm run seed` (rebuilds `data/data.json` from the seed).
+- **Reset to sample data:** `npm run seed` / `npm run seed:sample` (rebuilds `data/data.json` from the seed).
+- **Start blank:** `npm run seed:empty`, or in-app **Settings → Clear all data** (POST `/api/admin/reset`). Note: a fresh install seeds the SAMPLE data by default; deleting `data/data.json` re-seeds samples, it does NOT start blank.
 - **Install deps:** `npm install` (only dependency is `express`).
 
 ## Architecture
@@ -41,18 +42,23 @@ src/
     settings.js        GET/PUT validation intervals + due-soon window
     dashboard.js       Aggregated stats for the dashboard
     methodology.js     Exposes the scoring scheme (weights, tiers, intervals)
+    admin.js           POST /reset { mode:'empty'|'sample' } — blank vs sample data
 tools/
+  install-node.ps1             Self-install: ensure Node (PATH > portable > download)
   sync-from-inventory.mjs      Sample: map a bank inventory export -> import API
   sample-inventory-extract.csv Example input for the sync script
 public/
-  index.html           App shell (sidebar nav + content area)
+  index.html           App shell (sidebar nav: Dashboard/Register/Validation/Findings/Methodology/Settings)
   styles.css           All styling (CSS variables; no framework)
   js/
     api.js             fetch wrappers for the REST API
-    ui.js              esc/format helpers, badges, toast, generic modal
-    app.js             Hash router + all views + add/edit forms
+    ui.js              esc/format helpers, badges, toast, generic/info modals
+    app.js             Hash router + all views + add/edit forms + CSV import + Settings (clear/reload data)
 data/data.json         User data (git-ignored; created on first run from seed)
 METHODOLOGY.md         Plain-English explanation of the risk rating
+SETUP.md               Step-by-step setup for a new PC (non-technical)
+DEPLOYMENT.md          Shared-server + enterprise/IT deployment guide
+README.md              Overview, run instructions, CSV import/export, sync script
 ```
 
 Frontend is **vanilla ES modules** (no build step). Views are functions in `app.js`

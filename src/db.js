@@ -58,6 +58,20 @@ export function resetToSeed() {
   return cache;
 }
 
+// Wipe everything to a blank inventory (keeps sensible default settings).
+// This is what a new organisation uses to start from scratch.
+export function resetToEmpty() {
+  const seed = buildSeedData();
+  cache = {
+    models: [],
+    findings: [],
+    settings: seed.settings,
+    meta: { startedEmptyAt: new Date().toISOString(), schemaVersion: 1 },
+  };
+  save();
+  return cache;
+}
+
 // Convenience accessors used by the routes.
 export const getData = () => load();
 export const getModels = () => load().models;
@@ -69,6 +83,11 @@ export const getSettings = () => load().settings;
 const invokedDirectly =
   process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (invokedDirectly) {
-  resetToSeed();
-  console.log('Data store reset to seed data at', DATA_FILE);
+  if (process.argv.includes('--empty')) {
+    resetToEmpty();
+    console.log('Data store reset to EMPTY (blank inventory) at', DATA_FILE);
+  } else {
+    resetToSeed();
+    console.log('Data store reset to seed/sample data at', DATA_FILE);
+  }
 }

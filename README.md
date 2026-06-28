@@ -13,6 +13,7 @@ It comes pre-loaded with ~20 realistic (but entirely made-up) bank models so it 
 3. **Validation schedule** — the tier sets how often a model is re-validated (12 / 24 / 36 months by default, all editable). The tool works out the next-due date and flags everything as **overdue / due soon / current**.
 4. **Findings & issues tracker** — log issues against models (source, severity, owner, target date, status) and see at a glance which are **overdue**.
 5. **Dashboard** — models per tier, validation status, open issues by severity, and upcoming/overdue validations.
+6. **Import/export & setup** — load or back up models and findings as CSV (Excel), and, when you're ready to use it for real, **clear the sample data to start from a blank inventory** (Settings page). See the sections below.
 
 You can **add, edit and delete** models and findings yourself. **All data is saved on this machine** and is there when you come back.
 
@@ -24,7 +25,10 @@ You can **add, edit and delete** models and findings yourself. **All data is sav
 
 **Double-click `Start Model Tracker.bat`.**
 
-It launches the tool and opens it in your browser at **http://localhost:3000**. Leave that small black window open while you use the tool; close it when you're done.
+On the **first run** it sets itself up automatically — it downloads a small private copy of Node.js (no admin rights, nothing system-wide) and installs the app's components, then launches the tool and opens **http://localhost:3000**. Later runs take just a few seconds. Leave that small black window open while you use the tool; close it when you're done.
+
+> New to this / setting it up on a fresh PC? See the step-by-step **[SETUP.md](SETUP.md)**.
+> Sharing it with a team or rolling it out across a bank? See **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 
 ### The command-line way
 
@@ -35,9 +39,9 @@ npm start
 
 Then open **http://localhost:3000** in your browser.
 
-> This project was set up with a portable copy of Node.js in your user folder
-> (`%LOCALAPPDATA%\node-portable\...`), so nothing was installed system-wide and
-> no admin rights were needed. The launcher finds it automatically.
+> The command-line way assumes **Node.js is installed** (from [nodejs.org](https://nodejs.org)).
+> If it isn't, just use the launcher above instead — on first run it sets up a private,
+> portable copy of Node for you (no admin rights, nothing installed system-wide).
 
 ---
 
@@ -53,6 +57,7 @@ data/data.json
 - It's saved every time you add, edit or delete something — so your records survive restarts.
 - To **back it up**, just copy that file. To move the tool to another machine, copy the whole folder.
 - To **start over from the sample data**, delete `data/data.json` (or run `npm run seed`) and restart.
+- To **start blank** (a new organisation entering its own models), open **Settings → Clear all data**, or run `npm run seed:empty`. Restore the demo with **Settings → Reload sample data** or `npm run seed:sample`.
 
 ---
 
@@ -87,13 +92,16 @@ src/
   seed.js              The ~20 sample models and findings
   db.js                Reads/writes data/data.json
   csv.js               Dependency-free CSV reader/writer (import/export)
-  routes/              API endpoints (models, findings, settings, dashboard, methodology)
+  routes/              API endpoints (models, findings, settings, dashboard, methodology, admin)
 public/                The web interface (HTML, CSS, JavaScript)
 tools/
+  install-node.ps1             Auto-installs a portable Node.js on first run
   sync-from-inventory.mjs      Sample script to load models from an inventory export
   sample-inventory-extract.csv Example bank-style input for that script
 data/data.json         Your saved data (created on first run)
 METHODOLOGY.md         Plain-English explanation of the risk rating
+SETUP.md               Step-by-step setup for a new PC (non-technical)
+DEPLOYMENT.md          Shared-server and enterprise/IT deployment guide
 ```
 
 No internet connection is needed to use the tool — it runs entirely on your machine.

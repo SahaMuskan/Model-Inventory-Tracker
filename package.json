@@ -6,7 +6,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "seed": "node src/db.js --reset"
+    "seed": "node src/db.js --reset",
+    "seed:sample": "node src/db.js --reset",
+    "seed:empty": "node src/db.js --empty"
   },
   "engines": {
     "node": ">=18"

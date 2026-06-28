@@ -33,6 +33,8 @@ export const api = {
 
   importModels: (csv) => postText('/api/models/import', csv),
   importFindings: (csv) => postText('/api/findings/import', csv),
+
+  resetData: (mode) => req('POST', '/api/admin/reset', { mode }),
 };
 
 // Send raw CSV text to an import endpoint.
