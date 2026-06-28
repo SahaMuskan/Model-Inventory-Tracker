@@ -34,12 +34,16 @@ src/
   riskEngine.js        SINGLE SOURCE OF TRUTH for scoring + validation logic
   seed.js              ~20 fictional models + 15 findings (buildSeedData())
   db.js                Loads/saves data/data.json (atomic write); CLI reset entry point
+  csv.js               Dependency-free CSV parse/serialise (BOM-safe, Excel-friendly)
   routes/
-    models.js          CRUD for the model register (cascades deletes to findings + deps)
-    findings.js        CRUD for findings/issues
+    models.js          CRUD + GET export.csv / template.csv + POST import (upsert by id)
+    findings.js        CRUD + GET export.csv / template.csv + POST import (upsert by id)
     settings.js        GET/PUT validation intervals + due-soon window
     dashboard.js       Aggregated stats for the dashboard
     methodology.js     Exposes the scoring scheme (weights, tiers, intervals)
+tools/
+  sync-from-inventory.mjs      Sample: map a bank inventory export -> import API
+  sample-inventory-extract.csv Example input for the sync script
 public/
   index.html           App shell (sidebar nav + content area)
   styles.css           All styling (CSS variables; no framework)
@@ -95,3 +99,9 @@ Always restore clean seed state after manual testing (delete any scratch records
 - `Start Model Tracker.bat` globs `node-v*-win-x64`, so it survives a Node version
   bump. If Node is reinstalled elsewhere, update the path note above.
 - Don't commit `data/data.json` (it's git-ignored — it holds the user's real records).
+- CSV: `GET /export.csv` and `/template.csv` are registered **before** `GET /:id` in
+  `models.js`, otherwise `:id` would swallow them. Exports carry a UTF-8 BOM; `csv.js`
+  strips a leading BOM and any BOM stuck to a header name (Excel/PowerShell add them).
+  Import upserts by the `id` column; computed columns in an exported file are ignored.
+- `server.js` parses both `application/json` and `text/csv`/`text/plain` bodies
+  (import endpoints accept raw CSV text).

@@ -5,6 +5,7 @@ import { api } from './api.js';
 import {
   esc, fmtDate, daysPhrase, tierBadge, valBadge, sevBadge,
   findingStatusBadge, modelStatusBadge, toast, openModal, confirmDialog,
+  infoModal, downloadUrl,
 } from './ui.js';
 
 const appEl = () => document.getElementById('app');
@@ -142,7 +143,11 @@ const emptyRow = (cols, msg) => `<tr><td colspan="${cols}" class="center muted" 
 // =========================================================================
 async function viewModelList() {
   setHeader('Model Register', 'The master list of every model in the organisation.');
-  setActions([{ label: '+ Add model', cls: 'btn-primary', onClick: () => openModelForm() }]);
+  setActions([
+    { label: '&uarr; Import CSV', cls: '', onClick: () => openImportModal('models') },
+    { label: '&darr; Export CSV', cls: '', onClick: () => downloadUrl('/api/models/export.csv') },
+    { label: '+ Add model', cls: 'btn-primary', onClick: () => openModelForm() },
+  ]);
   const models = await api.models();
 
   appEl().innerHTML = `
@@ -437,7 +442,11 @@ function wireFindingRows(container, refresh) {
 
 async function viewFindings() {
   setHeader('Findings & Issues', 'Track problems raised against models through to resolution.');
-  setActions([{ label: '+ Add finding', cls: 'btn-primary', onClick: () => openFindingForm(null, null, viewFindings) }]);
+  setActions([
+    { label: '&uarr; Import CSV', cls: '', onClick: () => openImportModal('findings') },
+    { label: '&darr; Export CSV', cls: '', onClick: () => downloadUrl('/api/findings/export.csv') },
+    { label: '+ Add finding', cls: 'btn-primary', onClick: () => openFindingForm(null, null, viewFindings) },
+  ]);
   const [findings, models] = await Promise.all([api.findings(), api.models()]);
   window.__findingsCache = findings;
 
@@ -683,6 +692,45 @@ async function openFindingForm(finding = null, presetModelId = null, refresh = n
       if (isEdit) { await api.updateFinding(f.id, data); toast(`Saved ${f.id}`); }
       else { const c = await api.createFinding(data); toast(`Created ${c.id}`); }
       if (refresh) refresh(); else refreshCurrent();
+    },
+  });
+}
+
+// =========================================================================
+// CSV IMPORT
+// =========================================================================
+function openImportModal(kind) {
+  const cfg = kind === 'models'
+    ? { title: 'Import models from CSV', templateUrl: '/api/models/template.csv', exportUrl: '/api/models/export.csv', importFn: api.importModels, noun: 'models' }
+    : { title: 'Import findings from CSV', templateUrl: '/api/findings/template.csv', exportUrl: '/api/findings/export.csv', importFn: api.importFindings, noun: 'findings' };
+
+  const body = `
+    <p class="muted" style="margin-top:0">Upload a <strong>.csv</strong> file (the kind Excel saves). Existing rows are matched by their <strong>id</strong> column and updated; rows with a new or blank id are added.</p>
+    <ul class="muted" style="font-size:12.5px;margin:0 0 14px;padding-left:18px">
+      <li>Dates should be <code>YYYY-MM-DD</code> (UK <code>DD/MM/YYYY</code> is also accepted).</li>
+      ${kind === 'models'
+        ? '<li>Risk factors (materiality, complexity, reliance, regulatory, uncertainty) are <code>1</code>, <code>2</code> or <code>3</code> — the tier is recalculated automatically.</li><li><code>dependsOn</code> is a semicolon-separated list of model IDs, e.g. <code>MDL-001;MDL-004</code>.</li>'
+        : '<li>Each finding needs a <code>modelId</code> that already exists in the register.</li>'}
+    </ul>
+    <div style="display:flex;gap:16px;margin-bottom:16px;font-size:13px">
+      <a href="${cfg.templateUrl}">&darr; Download blank template</a>
+      <a href="${cfg.exportUrl}">&darr; Export current ${cfg.noun}</a>
+    </div>
+    <div class="fld"><label>Choose CSV file</label><input type="file" name="file" accept=".csv,text/csv"></div>`;
+
+  openModal({
+    title: cfg.title, bodyHtml: body, submitLabel: 'Import',
+    onSubmit: async (data, form) => {
+      const input = form.querySelector('input[type=file]');
+      const file = input.files && input.files[0];
+      if (!file) throw new Error('Please choose a CSV file first.');
+      const text = await file.text();
+      const res = await cfg.importFn(text);
+      toast(`Imported: ${res.created} added, ${res.updated} updated, ${res.skipped} skipped`);
+      refreshCurrent();
+      if (res.errors && res.errors.length) {
+        infoModal({ title: 'Import notes', bodyHtml: `<p class="muted">${res.created} added, ${res.updated} updated, ${res.skipped} skipped. Notes:</p><ul style="font-size:13px;padding-left:18px">${res.errors.map((e) => `<li>${esc(e)}</li>`).join('')}</ul>` });
+      }
     },
   });
 }

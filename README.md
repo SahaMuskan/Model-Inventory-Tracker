@@ -56,6 +56,28 @@ data/data.json
 
 ---
 
+## Importing & exporting data (CSV)
+
+You don't have to type every model in. On both the **Model Register** and **Findings** pages there are **Import CSV** and **Export CSV** buttons.
+
+- **Export CSV** downloads everything as a spreadsheet (opens directly in Excel). It includes read-only reference columns (tier, score, validation status, next-due) alongside the editable fields.
+- **Import CSV** uploads a spreadsheet. Rows are matched to existing records by their **`id`** column and updated; rows with a blank or new id are added. The dialog has a **Download blank template** link to get the exact columns.
+- Dates should be `YYYY-MM-DD` (UK `DD/MM/YYYY` is also accepted). Risk factors are `1`/`2`/`3` — the tier is always recalculated, never imported. `dependsOn` is a semicolon-separated list of IDs (e.g. `MDL-001;MDL-004`).
+
+A typical workflow: **Export**, edit in Excel, **Import** back.
+
+## Automating the feed (sync script)
+
+`tools/sync-from-inventory.mjs` is a sample/template script showing how a bank could load models automatically from an existing inventory export, instead of by hand. It reads a CSV with your own column names, **maps** them to the tracker's fields, **derives** the five risk-factor scores from quantitative columns (exposure, technique, downstream count, etc.) using transparent rules you tailor, and posts the result to the import API.
+
+```sh
+node tools/sync-from-inventory.mjs --dry-run        # show the mapped data, send nothing
+node tools/sync-from-inventory.mjs                  # load the bundled sample extract
+node tools/sync-from-inventory.mjs path/to/your.csv # load your own extract
+```
+
+See `tools/sample-inventory-extract.csv` for the bank-style input it expects. In a real deployment you'd point it at a scheduled database extract or a source-system API and run it on a server. (Note: the tool as shipped is a single-user local app — production integration would also need hosting, a database, and access controls.)
+
 ## Project layout
 
 ```
@@ -64,8 +86,12 @@ src/
   riskEngine.js        The risk-scoring + validation logic (single source of truth)
   seed.js              The ~20 sample models and findings
   db.js                Reads/writes data/data.json
+  csv.js               Dependency-free CSV reader/writer (import/export)
   routes/              API endpoints (models, findings, settings, dashboard, methodology)
 public/                The web interface (HTML, CSS, JavaScript)
+tools/
+  sync-from-inventory.mjs      Sample script to load models from an inventory export
+  sample-inventory-extract.csv Example bank-style input for that script
 data/data.json         Your saved data (created on first run)
 METHODOLOGY.md         Plain-English explanation of the risk rating
 ```

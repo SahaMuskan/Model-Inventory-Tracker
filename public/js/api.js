@@ -30,4 +30,18 @@ export const api = {
 
   methodology: () => req('GET', '/api/methodology'),
   dashboard: () => req('GET', '/api/dashboard'),
+
+  importModels: (csv) => postText('/api/models/import', csv),
+  importFindings: (csv) => postText('/api/findings/import', csv),
 };
+
+// Send raw CSV text to an import endpoint.
+async function postText(url, text) {
+  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/csv' }, body: text });
+  if (!res.ok) {
+    let msg = res.statusText;
+    try { const j = await res.json(); msg = j.error || msg; } catch (_) {}
+    throw new Error(msg);
+  }
+  return res.json();
+}

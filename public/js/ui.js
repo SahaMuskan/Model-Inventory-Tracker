@@ -111,3 +111,35 @@ export function openModal({ title, bodyHtml, submitLabel = 'Save', onSubmit, wid
 export function confirmDialog(message) {
   return Promise.resolve(window.confirm(message));
 }
+
+// A simple read-only modal (no form) for showing information such as import results.
+export function infoModal({ title, bodyHtml }) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h3>${esc(title)}</h3>
+        <button type="button" class="modal-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body"><div class="modal-content">${bodyHtml}</div>
+        <div class="modal-footer"><button type="button" class="btn btn-primary" data-close>Done</button></div>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('.modal-close').onclick = close;
+  overlay.querySelector('[data-close]').onclick = close;
+  overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) close(); });
+  return { overlay, close };
+}
+
+// Trigger a browser download from a URL (used for CSV export/template links).
+export function downloadUrl(url) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
