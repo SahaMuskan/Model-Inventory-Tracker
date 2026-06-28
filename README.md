@@ -43,6 +43,14 @@ Then open **http://localhost:3000** in your browser.
 > If it isn't, just use the launcher above instead — on first run it sets up a private,
 > portable copy of Node for you (no admin rights, nothing installed system-wide).
 
+### Run with Docker (servers / internal hosting)
+
+```sh
+docker compose up -d --build      # then open http://localhost:3000
+```
+
+This is the recommended way to host it on a server or a bank's internal infrastructure — build the image once and push it to an internal registry. Data persists in a named volume. See **[DEPLOYMENT.md](DEPLOYMENT.md)** for the full guide (Azure mapping, SSO, database, air-gapped install).
+
 ---
 
 ## Where your data lives
@@ -87,6 +95,8 @@ See `tools/sample-inventory-extract.csv` for the bank-style input it expects. In
 
 ```
 server.js              Express server (serves the API and the web interface)
+Dockerfile             Container image for server / internal hosting
+docker-compose.yml     One-command container run (data persists in a volume)
 src/
   riskEngine.js        The risk-scoring + validation logic (single source of truth)
   seed.js              The ~20 sample models and findings

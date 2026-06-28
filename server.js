@@ -23,6 +23,9 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '5mb' }));
 app.use(express.text({ type: ['text/csv', 'text/plain'], limit: '5mb' }));
 
+// Lightweight health check for containers, orchestrators and load balancers.
+app.get('/healthz', (req, res) => res.json({ status: 'ok', uptime: process.uptime() }));
+
 // --- API ---
 app.use('/api/models', modelsRouter);
 app.use('/api/findings', findingsRouter);

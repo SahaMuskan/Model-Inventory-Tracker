@@ -24,13 +24,17 @@ $env:Path = "C:\Users\muskan.saha\AppData\Local\node-portable\node-v24.18.0-win-
 - **Reset to sample data:** `npm run seed` / `npm run seed:sample` (rebuilds `data/data.json` from the seed).
 - **Start blank:** `npm run seed:empty`, or in-app **Settings → Clear all data** (POST `/api/admin/reset`). Note: a fresh install seeds the SAMPLE data by default; deleting `data/data.json` re-seeds samples, it does NOT start blank.
 - **Install deps:** `npm install` (only dependency is `express`).
+- **Run as a container:** `docker compose up -d --build` (recommended for servers / internal infra; see `DEPLOYMENT.md`). Health probe at `GET /healthz`.
 
 ## Architecture
 
 Single Express server serves both the JSON REST API and the static web UI.
 
 ```
-server.js              Express app: mounts /api/* routers, serves /public, SPA fallback
+server.js              Express app: /healthz, mounts /api/* routers, serves /public, SPA fallback
+Dockerfile             Production image (non-root, HEALTHCHECK -> /healthz)
+docker-compose.yml     One-command container run; data persists in volume tracker-data
+.dockerignore          Keeps node_modules/.git/data out of the image
 src/
   riskEngine.js        SINGLE SOURCE OF TRUTH for scoring + validation logic
   seed.js              ~20 fictional models + 15 findings (buildSeedData())

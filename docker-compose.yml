@@ -1,0 +1,22 @@
+# Run the Model Inventory & Risk Tracker as a container.
+#
+#   docker compose up -d --build      # start (builds the image on first run)
+#   docker compose down               # stop
+#
+# Data persists in the named volume "tracker-data" across restarts/upgrades.
+# Open http://localhost:3000 once it is up.
+services:
+  tracker:
+    build: .
+    image: model-inventory-tracker:latest
+    container_name: model-inventory-tracker
+    ports:
+      - "3000:3000"          # change the left number to publish on another port
+    environment:
+      PORT: "3000"
+    volumes:
+      - tracker-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  tracker-data:
